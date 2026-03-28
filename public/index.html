@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🍽️ Dinner Planner</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <header>
+    <div class="header-content">
+      <h1>🍽️ Dinner Planner</h1>
+      <p class="subtitle">Plan your family dinners with ease</p>
+    </div>
+  </header>
+
+  <nav>
+    <button class="tab-btn active" data-tab="dashboard">📊 Dashboard</button>
+    <button class="tab-btn" data-tab="dinners">🥘 Dinners</button>
+    <button class="tab-btn" data-tab="plans">📅 Plans</button>
+    <button class="tab-btn" data-tab="schedule">⏰ Schedule</button>
+    <button class="tab-btn" data-tab="family">👨‍👩‍👧‍👦 Family</button>
+  </nav>
+
+  <main>
+    <!-- Dashboard Tab -->
+    <section id="tab-dashboard" class="tab-content active">
+      <div class="section-header">
+        <h2>Dashboard</h2>
+        <div class="actions">
+          <button id="btn-generate-plan" class="btn btn-primary">Generate This Month's Plan</button>
+        </div>
+      </div>
+      <div id="dashboard-plan" class="plan-grid-container">
+        <p class="empty-state">No plan generated yet. Click "Generate This Month's Plan" to start.</p>
+      </div>
+    </section>
+
+    <!-- Dinners Tab -->
+    <section id="tab-dinners" class="tab-content">
+      <div class="section-header">
+        <h2>Manage Dinners</h2>
+        <div class="actions">
+          <select id="filter-type" class="select-control">
+            <option value="">All Types</option>
+            <option value="meat">🥩 Meat</option>
+            <option value="vegan">🥦 Vegan</option>
+            <option value="poultry">🍗 Poultry</option>
+            <option value="fish">🐟 Fish</option>
+            <option value="pasta">🍝 Pasta</option>
+            <option value="other">🍳 Other</option>
+          </select>
+          <button id="btn-add-dinner" class="btn btn-primary">+ Add Dinner</button>
+        </div>
+      </div>
+
+      <!-- Add/Edit Dinner Form -->
+      <div id="dinner-form-container" class="form-card" style="display:none;">
+        <h3 id="dinner-form-title">Add New Dinner</h3>
+        <form id="dinner-form">
+          <input type="hidden" id="dinner-id">
+          <div class="form-group">
+            <label for="dinner-name">Name</label>
+            <input type="text" id="dinner-name" placeholder="e.g., Grilled Salmon" required>
+          </div>
+          <div class="form-group">
+            <label for="dinner-type">Type</label>
+            <select id="dinner-type" required>
+              <option value="">Select type...</option>
+              <option value="meat">🥩 Meat</option>
+              <option value="vegan">🥦 Vegan</option>
+              <option value="poultry">🍗 Poultry</option>
+              <option value="fish">🐟 Fish</option>
+              <option value="pasta">🍝 Pasta</option>
+              <option value="other">🍳 Other</option>
+            </select>
+          </div>
+          <div class="form-group checkbox-group">
+            <label>
+              <input type="checkbox" id="dinner-saturday">
+              Saturday Special (featured on Saturdays)
+            </label>
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary" id="dinner-form-submit">Add Dinner</button>
+            <button type="button" class="btn btn-secondary" id="dinner-form-cancel">Cancel</button>
+          </div>
+        </form>
+      </div>
+
+      <div id="dinners-table-container">
+        <table class="data-table" id="dinners-table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Type</th>
+              <th>Saturday Special</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="dinners-tbody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Plans Tab -->
+    <section id="tab-plans" class="tab-content">
+      <div class="section-header">
+        <h2>Dinner Plans</h2>
+        <div class="actions">
+          <button id="btn-generate-plan-2" class="btn btn-primary">Generate New Plan</button>
+        </div>
+      </div>
+      
+      <!-- Generate Plan Form -->
+      <div id="generate-form-container" class="form-card" style="display:none;">
+        <h3>Generate Plan</h3>
+        <form id="generate-form">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="gen-year">Year</label>
+              <input type="number" id="gen-year" min="2024" max="2030" required>
+            </div>
+            <div class="form-group">
+              <label for="gen-month">Month</label>
+              <select id="gen-month" required>
+                <option value="1">January</option>
+                <option value="2">February</option>
+                <option value="3">March</option>
+                <option value="4">April</option>
+                <option value="5">May</option>
+                <option value="6">June</option>
+                <option value="7">July</option>
+                <option value="8">August</option>
+                <option value="9">September</option>
+                <option value="10">October</option>
+                <option value="11">November</option>
+                <option value="12">December</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Generate</button>
+            <button type="button" class="btn btn-secondary" id="generate-form-cancel">Cancel</button>
+          </div>
+        </form>
+      </div>
+
+      <div id="plans-list"></div>
+      
+      <!-- Plan Detail View -->
+      <div id="plan-detail" style="display:none;">
+        <div class="section-header">
+          <h3 id="plan-detail-title"></h3>
+          <div class="actions">
+            <button id="btn-send-plan" class="btn btn-success">📧 Send Plan Email</button>
+            <button id="btn-back-plans" class="btn btn-secondary">← Back to Plans</button>
+          </div>
+        </div>
+        <div id="plan-detail-grid"></div>
+      </div>
+    </section>
+
+    <!-- Schedule Tab -->
+    <section id="tab-schedule" class="tab-content">
+      <div class="section-header">
+        <h2>Email Schedule &amp; SMTP</h2>
+      </div>
+      <div class="form-card">
+        <form id="schedule-form">
+          <h3>Send Schedule</h3>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="send-day">Day of Month</label>
+              <input type="number" id="send-day" min="1" max="28" required>
+            </div>
+            <div class="form-group">
+              <label for="send-hour">Hour (0-23)</label>
+              <input type="number" id="send-hour" min="0" max="23" required>
+            </div>
+            <div class="form-group">
+              <label for="send-minute">Minute (0-59)</label>
+              <input type="number" id="send-minute" min="0" max="59" required>
+            </div>
+          </div>
+
+          <h3>Recipient Emails</h3>
+          <div class="form-group">
+            <label for="recipient-emails">Email Addresses (one per line)</label>
+            <textarea id="recipient-emails" rows="4" placeholder="family@example.com&#10;spouse@example.com"></textarea>
+          </div>
+
+          <h3>SMTP Configuration</h3>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="smtp-host">SMTP Host</label>
+              <input type="text" id="smtp-host" placeholder="smtp.gmail.com">
+            </div>
+            <div class="form-group">
+              <label for="smtp-port">SMTP Port</label>
+              <input type="number" id="smtp-port" placeholder="587">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="smtp-user">SMTP Username</label>
+              <input type="text" id="smtp-user" placeholder="your@email.com">
+            </div>
+            <div class="form-group">
+              <label for="smtp-pass">SMTP Password</label>
+              <input type="password" id="smtp-pass" placeholder="Leave blank to keep current">
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="smtp-from">From Address</label>
+            <input type="text" id="smtp-from" placeholder="Dinner Planner &lt;noreply@example.com&gt;">
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Save Settings</button>
+            <button type="button" id="btn-send-inquiry" class="btn btn-secondary">📧 Send Event Inquiry Email</button>
+          </div>
+        </form>
+      </div>
+      <div id="schedule-status" class="status-card" style="display:none;"></div>
+    </section>
+
+    <!-- Family Tab -->
+    <section id="tab-family" class="tab-content">
+      <div class="section-header">
+        <h2>Family Settings</h2>
+      </div>
+      <div class="form-card">
+        <form id="family-form">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="family-adults">👨‍👩 Adults</label>
+              <input type="number" id="family-adults" min="1" max="10" required>
+            </div>
+            <div class="form-group">
+              <label for="family-kids">👧 Kids</label>
+              <input type="number" id="family-kids" min="0" max="10" required>
+            </div>
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Save Family Settings</button>
+          </div>
+        </form>
+        <div id="family-total" class="total-display"></div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Toast notification -->
+  <div id="toast" class="toast" style="display:none;"></div>
+
+  <!-- Edit Plan Day Modal -->
+  <div id="modal-overlay" class="modal-overlay" style="display:none;">
+    <div class="modal">
+      <h3>Edit Day</h3>
+      <form id="edit-day-form">
+        <input type="hidden" id="edit-day-id">
+        <div class="form-group">
+          <label for="edit-dinner-select">Dinner</label>
+          <select id="edit-dinner-select">
+            <option value="">-- None --</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="edit-dinner-override">Or Custom Text</label>
+          <input type="text" id="edit-dinner-override" placeholder="e.g., Takeout, Leftovers...">
+        </div>
+        <div class="form-group checkbox-group">
+          <label>
+            <input type="checkbox" id="edit-is-event"> Event Day (simple dinner)
+          </label>
+        </div>
+        <div class="form-group">
+          <label for="edit-event-note">Event Note</label>
+          <input type="text" id="edit-event-note" placeholder="e.g., Birthday party">
+        </div>
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary">Save</button>
+          <button type="button" class="btn btn-secondary" id="modal-cancel">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="/js/app.js"></script>
+</body>
+</html>
