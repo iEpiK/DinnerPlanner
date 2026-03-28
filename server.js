@@ -2,6 +2,7 @@
 
 const express = require('express');
 const path = require('path');
+const rateLimit = require('express-rate-limit');
 const { initScheduler } = require('./src/scheduler');
 const { getDatabase } = require('./src/database');
 
@@ -10,6 +11,15 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
+
+// Apply rate limiting to all API routes
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 200,
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+app.use('/api/', apiLimiter);
 
 // API routes
 app.use('/api/dinners', require('./src/routes/dinners'));
@@ -130,8 +140,9 @@ app.get('/events', (req, res) => {
 </html>`);
 });
 
-// Plan edit page
-app.get('/plan/edit/:token', (req, res) => {
+// Plan edit page - rate limited to prevent token enumeration
+const editLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 100, standardHeaders: true, legacyHeaders: false });
+app.get('/plan/edit/:token', editLimiter, (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 

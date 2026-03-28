@@ -15,8 +15,7 @@ jest.mock('../src/database', () => {
   function getDatabase() {
     if (_db) return _db;
     _db = new Database(':memory:');
-    const mod = jest.requireActual('../src/database');
-    // Re-run schema init using actual logic
+    // Re-run schema init
     _db.exec(`
       CREATE TABLE IF NOT EXISTS dinners (
         id INTEGER PRIMARY KEY AUTOINCREMENT,

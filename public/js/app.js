@@ -5,6 +5,8 @@
 // =====================
 let allDinners = [];
 let currentPlanId = null;
+// Cache plan day data by id to avoid inline JSON in onclick attributes
+const planDayCache = new Map();
 
 // =====================
 // Utilities
@@ -180,7 +182,9 @@ function editDinner(id) {
 }
 
 async function deleteDinner(id, name) {
-  if (!confirm(`Delete "${name}"?`)) return;
+  const dinner = allDinners.find(x => x.id === Number(id));
+  const displayName = dinner ? dinner.name : name;
+  if (!confirm(`Delete "${displayName}"?`)) return;
   try {
     await apiFetch(`/api/dinners/${id}`, { method: 'DELETE' });
     showToast('Dinner deleted.', 'success');
@@ -251,7 +255,9 @@ async function loadPlanByToken(token) {
 
 function renderPlanGrid(container, plan, editable) {
   const firstDay = new Date(plan.year, plan.month - 1, 1).getDay();
-  const daysInMonth = new Date(plan.year, plan.month, 0).getDate();
+
+  planDayCache.clear();
+  for (const day of plan.days) planDayCache.set(day.id, day);
 
   let html = `<div class="plan-month-header">${MONTH_NAMES[plan.month - 1]} ${plan.year}</div>`;
   html += '<div class="plan-grid">';
@@ -282,8 +288,8 @@ function renderPlanGrid(container, plan, editable) {
       dinnerText = day.dinner_override;
     }
 
-    const clickAttr = editable ? `onclick="openEditDayModal(${day.id}, ${JSON.stringify(day).replace(/"/g, '&quot;')})"` : '';
-    html += `<div class="${classes}" ${clickAttr}>
+    const editAttr = editable ? `data-day-id="${day.id}"` : '';
+    html += `<div class="${classes}" ${editAttr}>
       <div class="day-number">${dateObj.getDate()}</div>
       <div class="day-dinner">${dinnerText}</div>
     </div>`;
@@ -291,6 +297,16 @@ function renderPlanGrid(container, plan, editable) {
 
   html += '</div>';
   container.innerHTML = html;
+
+  if (editable) {
+    container.querySelectorAll('.plan-day[data-day-id]').forEach(el => {
+      el.addEventListener('click', () => {
+        const dayId = parseInt(el.dataset.dayId);
+        const dayData = planDayCache.get(dayId);
+        if (dayData) openEditDayModal(dayId, dayData);
+      });
+    });
+  }
 }
 
 async function sendPlan(id) {
