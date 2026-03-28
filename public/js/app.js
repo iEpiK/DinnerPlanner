@@ -11,6 +11,15 @@ const planDayCache = new Map();
 // =====================
 // Utilities
 // =====================
+function escHtml(str) {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
 function showToast(msg, type = 'info') {
   const t = document.getElementById('toast');
   t.textContent = msg;
@@ -122,12 +131,12 @@ function renderDinnersTable(dinners) {
   }
   tbody.innerHTML = dinners.map(d => `
     <tr>
-      <td>${d.name}</td>
-      <td><span class="badge badge-${d.type}">${typeIcon(d.type)} ${d.type}</span></td>
+      <td>${escHtml(d.name)}</td>
+      <td><span class="badge badge-${escHtml(d.type)}">${typeIcon(d.type)} ${escHtml(d.type)}</span></td>
       <td>${d.is_saturday ? '⭐ Yes' : 'No'}</td>
       <td>
         <button class="btn btn-sm btn-secondary" onclick="editDinner(${d.id})">✏️ Edit</button>
-        <button class="btn btn-sm btn-danger" data-id="${d.id}" data-name="${d.name.replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}" onclick="deleteDinner(this.dataset.id, this.dataset.name)">🗑️ Delete</button>
+        <button class="btn btn-sm btn-danger" data-id="${d.id}" data-name="${escHtml(d.name)}" onclick="deleteDinner(this.dataset.id, this.dataset.name)">🗑️ Delete</button>
       </td>
     </tr>
   `).join('');
@@ -281,11 +290,11 @@ function renderPlanGrid(container, plan, editable) {
 
     let dinnerText = '';
     if (day.is_event) {
-      dinnerText = `<span class="day-event-badge">📅 Event</span><br>${day.event_note || ''}`;
+      dinnerText = `<span class="day-event-badge">📅 Event</span><br>${escHtml(day.event_note || '')}`;
     } else if (day.dinner_name) {
-      dinnerText = `${typeIcon(day.dinner_type)} ${day.dinner_name}`;
+      dinnerText = `${typeIcon(day.dinner_type)} ${escHtml(day.dinner_name)}`;
     } else if (day.dinner_override) {
-      dinnerText = day.dinner_override;
+      dinnerText = escHtml(day.dinner_override);
     }
 
     const editAttr = editable ? `data-day-id="${day.id}"` : '';
@@ -362,7 +371,7 @@ async function openEditDayModal(dayId, dayData) {
   }
   const sel = document.getElementById('edit-dinner-select');
   sel.innerHTML = '<option value="">-- None --</option>' +
-    allDinners.map(d => `<option value="${d.id}" ${dayData.dinner_id == d.id ? 'selected' : ''}>${typeIcon(d.type)} ${d.name}</option>`).join('');
+    allDinners.map(d => `<option value="${d.id}" ${dayData.dinner_id == d.id ? 'selected' : ''}>${typeIcon(d.type)} ${escHtml(d.name)}</option>`).join('');
 
   document.getElementById('edit-day-id').value = dayId;
   document.getElementById('edit-dinner-override').value = dayData.dinner_override || '';

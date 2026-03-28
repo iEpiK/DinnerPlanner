@@ -98,12 +98,20 @@ app.get('/events', (req, res) => {
     <div id="events-container"></div>
   </div>
   <script>
+    function escHtml(str) {
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+    }
     async function loadEvents() {
       const res = await fetch('/api/events');
       const events = await res.json();
       const container = document.getElementById('events-container');
       container.innerHTML = events.length === 0 ? '<p>No events submitted yet.</p>' :
-        events.map(e => \`<div class="event-item"><span><strong>\${e.date}</strong>\${e.note ? ' - ' + e.note : ''}</span><button class="delete-btn" onclick="deleteEvent(\${e.id})">Remove</button></div>\`).join('');
+        events.map(e => \`<div class="event-item"><span><strong>\${escHtml(e.date)}</strong>\${e.note ? ' - ' + escHtml(e.note) : ''}</span><button class="delete-btn" onclick="deleteEvent(\${Number(e.id)})">Remove</button></div>\`).join('');
     }
     async function deleteEvent(id) {
       await fetch(\`/api/events/\${id}\`, { method: 'DELETE' });

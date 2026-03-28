@@ -42,17 +42,35 @@ function generateMonthlyPlan(year, month, options = {}) {
   let satPool = shuffle([...saturdayDinners]);
   const recentlyUsed = [];
 
+  function lastUsedId() {
+    return recentlyUsed.length > 0 ? recentlyUsed[recentlyUsed.length - 1].id : null;
+  }
+
+  function recordUsed(dinner) {
+    if (!dinner) return;
+    recentlyUsed.push(dinner);
+    if (recentlyUsed.length > 10) recentlyUsed.shift();
+  }
+
   function pickFromPool(localPool) {
+    const prevId = lastUsedId();
+    const recentIds = recentlyUsed.slice(-5).map(r => r.id);
+
+    // Refill if empty
     if (localPool.length === 0) {
-      const recentIds = recentlyUsed.slice(-5).map(r => r.id);
       const filtered = shuffle(allDinners.filter(d => !recentIds.includes(d.id)));
       localPool.push(...(filtered.length > 0 ? filtered : shuffle([...allDinners])));
     }
-    const dinner = localPool.shift();
-    if (dinner) {
-      recentlyUsed.push(dinner);
-      if (recentlyUsed.length > 10) recentlyUsed.shift();
+
+    // Pick first item that is not the same as the immediately previous dinner
+    let idx = localPool.findIndex(d => d.id !== prevId);
+    if (idx === -1) {
+      // All items in pool are the same as prevId (edge case: very few dinners)
+      idx = 0;
     }
+
+    const [dinner] = localPool.splice(idx, 1);
+    recordUsed(dinner);
     return dinner;
   }
 
@@ -72,16 +90,25 @@ function generateMonthlyPlan(year, month, options = {}) {
     }
 
     let dinner;
-    if (saturdaySpecial && dow === 6 && satPool.length > 0) {
-      // Try to pick a Saturday dinner
+    if (saturdaySpecial && dow === 6) {
+      // Try to pick a Saturday dinner not recently used
+      const prevId = lastUsedId();
       const recentIds = recentlyUsed.slice(-3).map(r => r.id);
-      const filtered = satPool.filter(d => !recentIds.includes(d.id));
-      if (filtered.length > 0) {
-        dinner = filtered[0];
-        const idx = satPool.findIndex(d => d.id === dinner.id);
+      const candidates = satPool.filter(d => d.id !== prevId && !recentIds.includes(d.id));
+      const fallbackCandidates = satPool.filter(d => d.id !== prevId);
+
+      const chosen = candidates[0] || fallbackCandidates[0];
+      if (chosen) {
+        const idx = satPool.findIndex(d => d.id === chosen.id);
         satPool.splice(idx, 1);
-        recentlyUsed.push(dinner);
-        if (recentlyUsed.length > 10) recentlyUsed.shift();
+        recordUsed(chosen);
+        dinner = chosen;
+        // Refill sat pool when exhausted
+        if (satPool.length === 0) {
+          const prevIds = recentlyUsed.slice(-3).map(r => r.id);
+          satPool = shuffle(saturdayDinners.filter(d => !prevIds.includes(d.id)));
+          if (satPool.length === 0) satPool = shuffle([...saturdayDinners]);
+        }
       } else {
         dinner = pickFromPool(pool);
       }
